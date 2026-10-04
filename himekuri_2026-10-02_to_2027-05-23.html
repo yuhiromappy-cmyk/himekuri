@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111">
+<title>日めくり — 2026.10.02 → 2027.05.23</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eee;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;min-height:100vh}
+.app{max-width:520px;margin:auto;min-height:100vh;background:#f7f5ef;display:flex;flex-direction:column}
+header{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:13px;letter-spacing:.12em;font-weight:700}
+.progress{font-size:12px;color:#777}
+.card{margin:8px 16px 14px;background:#fff;border-radius:24px;box-shadow:0 10px 35px #00000014;min-height:530px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:30px;position:relative;overflow:hidden}
+.card:before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:#111}
+.month{font-size:18px;font-weight:700;letter-spacing:.08em;margin-bottom:8px}
+.day{font-size:112px;line-height:.95;font-weight:800;letter-spacing:-.06em}
+.week{font-size:18px;color:#777;margin-top:8px}
+.label{margin-top:38px;font-size:12px;letter-spacing:.16em;color:#999}
+.target{font-size:16px;margin-top:8px;font-weight:600}
+.remaining{margin-top:24px;font-size:13px;color:#666}
+.controls{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px;padding:0 16px 12px}
+button{border:0;border-radius:15px;padding:15px 8px;font-size:14px;font-weight:700;background:#ddd;color:#111;cursor:pointer}
+button.primary{background:#111;color:#fff}
+button:active{transform:scale(.98)}
+footer{padding:4px 20px 24px;text-align:center;color:#999;font-size:11px;line-height:1.7}
+@media (max-height:700px){.card{min-height:430px}.day{font-size:88px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">日めくり</div>
+  <div class="progress" id="progress"></div>
+</header>
+<main class="card" id="card">
+  <div class="month" id="month"></div>
+  <div class="day" id="day"></div>
+  <div class="week" id="week"></div>
+  <div class="label">GOAL</div>
+  <div class="target">2027年5月23日まで</div>
+  <div class="remaining" id="remaining"></div>
+</main>
+<div class="controls">
+  <button id="prev">‹ 前へ</button>
+  <button class="primary" id="today">今日</button>
+  <button id="next">次へ ›</button>
+</div>
+<footer>
+  2026/10/02 〜 2027/05/23<br>
+  画面をホーム画面に追加すると、アプリのように使えます。
+</footer>
+</div>
+<script>
+const START = new Date("2026-10-02T00:00:00");
+const END = new Date("2027-05-23T00:00:00");
+const TOTAL = 234;
+const jp = ["日","月","火","水","木","金","土"];
+
+function key(d) {
+  return d.toISOString().slice(0,10);
+}
+function normalize(d) {
+  d.setHours(0,0,0,0);
+  return d;
+}
+function clamp(d) {
+  if (d < START) return new Date(START);
+  if (d > END) return new Date(END);
+  return d;
+}
+function diff(a,b) {
+  return Math.round((normalize(new Date(b))-normalize(new Date(a)))/86400000);
+}
+
+let saved = localStorage.getItem("daily_page");
+let current = saved ? new Date(saved+"T00:00:00") : new Date();
+current = clamp(normalize(current));
+
+function render() {
+  const i = diff(START,current);
+  const left = diff(current,END);
+  document.getElementById("month").textContent =
+    current.getFullYear()+"年"+(current.getMonth()+1)+"月";
+  document.getElementById("day").textContent = current.getDate();
+  document.getElementById("week").textContent = jp[current.getDay()]+"曜日";
+  document.getElementById("remaining").textContent =
+    left === 0 ? "🎉 ゴールの日です" : "あと "+left+"日";
+  document.getElementById("progress").textContent =
+    (i+1)+" / "+TOTAL;
+  document.getElementById("prev").disabled = i === 0;
+  document.getElementById("next").disabled = i === TOTAL-1;
+  localStorage.setItem("daily_page", key(current));
+}
+
+function move(n) {
+  current = clamp(new Date(current.getTime()+n*86400000));
+  render();
+}
+document.getElementById("prev").onclick=()=>move(-1);
+document.getElementById("next").onclick=()=>move(1);
+document.getElementById("today").onclick=()=>{
+  const now = clamp(normalize(new Date()));
+  current = now;
+  render();
+};
+render();
+</script>
+</body>
+</html>
